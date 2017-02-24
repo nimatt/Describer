@@ -11,25 +11,78 @@ namespace Describer.Test
     public class Tests
     {
         [Test]
-        public void First()
+        public void SimpleProperty()
         {
-            Assert.IsNotNull(new TestClass().ToString());
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.FirstProp) + ": first", DescriptionBuilder.Describe(obj,
+                        o => o.FirstProp
+                    ));
+        }
+
+        [Test]
+        public void Method()
+        {
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.MyMethod) + "(): " + obj.MyMethod(), DescriptionBuilder.Describe(obj,
+                        o => o.MyMethod()
+                    ));
+        }
+
+        [Test]
+        public void MethodOnPropertyOnProperty()
+        {
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.FirstProp) + ": 5", DescriptionBuilder.Describe(obj,
+                        o => o.FirstProp.Length.ToString()
+                    ));
+        }
+
+        [Test]
+        public void MethodOnPropertyOnMethodOnPropertyOnProperty()
+        {
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.FirstProp) + ": 1", DescriptionBuilder.Describe(obj,
+                        o => o.FirstProp.Length.ToString().Length.ToString()
+                    ));
+        }
+
+        [Test]
+        public void MethodWithParam()
+        {
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.MethodWithParam) + "(): " + obj.MethodWithParam("foo"), DescriptionBuilder.Describe(obj,
+                        o => o.MethodWithParam("foo")
+                    ));
+        }
+
+        [Test]
+        public void OuterFunction()
+        {
+            var obj = new TestClass();
+            Assert.AreEqual(nameof(obj.NumProp) + ": " + obj.NumProp, DescriptionBuilder.Describe(obj,
+                        o => NumToString(o.NumProp)
+                    ));
+        }
+
+        private string NumToString(int val)
+        {
+            return val.ToString();
         }
 
         private class TestClass
         {
-            public string FirstProp { get; set; }
+            public string FirstProp => "first";
 
-            public TestClass()
+            public int NumProp => 5;
+
+            public string MyMethod()
             {
-                FirstProp = "first";
+                return "Foo";
             }
 
-            public override string ToString()
+            public string MethodWithParam(string val)
             {
-                return DescriptionBuilder.Describe(this,
-                        o => o.FirstProp
-                    );
+                return val;
             }
         }
     }
