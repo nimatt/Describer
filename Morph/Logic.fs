@@ -2,8 +2,11 @@
 
 open System
 open System.Linq.Expressions
+open System.Dynamic
+open System.Collections.Generic
+open Newtonsoft.Json
 
-type private Builder<'b> (exps: seq<Expression<Func<'b,string>>>) =
+type Converter<'b> (exps: seq<Expression<Func<'b,Object>>>) =
     let getNameFromSet (names: Set<option<string>>) =
         match Set.count names with
         | 0 -> None
@@ -18,9 +21,9 @@ type private Builder<'b> (exps: seq<Expression<Func<'b,string>>>) =
             | :? BinaryExpression as binExp -> getNameFromMultiple ([binExp.Left; binExp.Right])
             | :? ParameterExpression -> lastFound
             | :? ConstantExpression -> None
-            | :? UnaryExpression -> None
+            | :? UnaryExpression as ue -> getPropertyNameInternal lastFound ue.Operand
             | null -> None
-            | _ -> raise (new ArgumentException("Unknown expression type"))
+            | _ -> None
 
     and poolNames (names: seq<option<string>>) =
         names
@@ -38,15 +41,24 @@ type private Builder<'b> (exps: seq<Expression<Func<'b,string>>>) =
         
 
     let compiled =
-        exps |> Seq.map (fun e -> ((getPropertyName (e.Body)).Value, e.Compile()))
+        let namedExps = exps |> Seq.map (fun e -> (getPropertyName (e.Body), e)) |> List.ofSeq
+        if Seq.exists (fun ((n: option<string>), e) -> n.IsNone) namedExps then
+            raise (new ArgumentException("Unable to get name from expression"))
+        else
+            namedExps |> Seq.map (fun (n,e) -> (n.Value, e.Compile())) |> List.ofSeq
 
     member this.Evaluate (o: 'b) = 
+        let obj = new ExpandoObject()
         compiled 
-            |> Seq.map (fun ce -> fst ce + ": " + (snd ce).Invoke(o))
-            |> (fun rw -> "{ " + String.Join("; ", rw) + " }")
+            |> Seq.iter (fun ce -> 
+                (obj :> IDictionary<string, Object>).Add(fst ce, (snd ce).Invoke(o)))
+        obj
 
-module DescriptionBuilder = 
-    let Describe<'T> (o:'T) ([<ParamArray>] exps: Expression<Func<'T,string>>[]): string = 
-        let builder = Builder exps
-        builder.Evaluate o
+module Morpher = 
+    let Morph<'T> (o:'T) ([<ParamArray>] exps: Expression<Func<'T,Object>>[]): Object =
+        let builder = Converter exps
+        upcast builder.Evaluate o
+
+    let Describe<'T> (o:'T) ([<ParamArray>] exps: Expression<Func<'T,Object>>[]): string = 
+        JsonConvert.SerializeObject(Morph o exps)
 

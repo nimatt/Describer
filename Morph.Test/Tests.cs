@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace Describer.Test
+namespace Morph.Test
 {
     [TestFixture]
     public class Tests
@@ -9,7 +9,7 @@ namespace Describer.Test
         public void SimpleProperty()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.FirstProp)}: first }}", DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.FirstProp)}\":\"first\"}}", Morpher.Describe(obj,
                         o => o.FirstProp
                     ));
         }
@@ -18,7 +18,7 @@ namespace Describer.Test
         public void Method()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.MyMethod)}(): {obj.MyMethod()} }}", DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.MyMethod)}()\":\"{obj.MyMethod()}\"}}", Morpher.Describe(obj,
                         o => o.MyMethod()
                     ));
         }
@@ -27,8 +27,8 @@ namespace Describer.Test
         public void MethodOnPropertyOnProperty()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.FirstProp)}: 5 }}", DescriptionBuilder.Describe(obj,
-                        o => o.FirstProp.Length.ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.FirstProp)}\":5}}", Morpher.Describe(obj,
+                        o => o.FirstProp.Length
                     ));
         }
 
@@ -36,8 +36,8 @@ namespace Describer.Test
         public void MethodOnPropertyOnMethodOnPropertyOnProperty()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.FirstProp)}: 1 }}", DescriptionBuilder.Describe(obj,
-                        o => o.FirstProp.Length.ToString().Length.ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.FirstProp)}\":1}}", Morpher.Describe(obj,
+                        o => o.FirstProp.Length.ToString().Length
                     ));
         }
 
@@ -45,7 +45,7 @@ namespace Describer.Test
         public void MethodWithParam()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.MethodWithParam)}(): {obj.MethodWithParam("foo")} }}", DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.MethodWithParam)}()\":\"{obj.MethodWithParam("foo")}\"}}", Morpher.Describe(obj,
                         o => o.MethodWithParam("foo")
                     ));
         }
@@ -54,7 +54,7 @@ namespace Describer.Test
         public void OuterFunction()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}: {obj.NumProp} }}", DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}\":\"{obj.NumProp}\"}}", Morpher.Describe(obj,
                         o => NumToString(o.NumProp)
                     ));
         }
@@ -65,10 +65,10 @@ namespace Describer.Test
             var obj = new TestClass();
             var obj2 = new SecondTestClass();
             obj.ObjProp = obj2;
-            Assert.AreEqual($"{{ {nameof(obj.ObjProp)}: {{ {nameof(obj2.SecNumProp)}: {obj2.SecNumProp} }} }}",
-                DescriptionBuilder.Describe(obj,
-                        o => DescriptionBuilder.Describe(o.ObjProp,
-                                o2 => o2.SecNumProp.ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.ObjProp)}\":{{\"{nameof(obj2.SecNumProp)}\":{obj2.SecNumProp}}}}}",
+                Morpher.Describe(obj,
+                        o => Morpher.Morph(o.ObjProp,
+                                o2 => o2.SecNumProp
                             )
                     ));
         }
@@ -77,9 +77,9 @@ namespace Describer.Test
         public void Addition()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}: {obj.NumProp + obj.NumProp} }}",
-                DescriptionBuilder.Describe(obj,
-                        o => (o.NumProp + o.NumProp).ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}\":{obj.NumProp + obj.NumProp}}}",
+                Morpher.Describe(obj,
+                        o => o.NumProp + o.NumProp
                     ));
         }
 
@@ -87,9 +87,9 @@ namespace Describer.Test
         public void AdditionDifferentConstant()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}: {obj.NumProp + 2} }}",
-                DescriptionBuilder.Describe(obj,
-                        o => (o.NumProp + 2).ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}\":{obj.NumProp + 2}}}",
+                Morpher.Describe(obj,
+                        o => o.NumProp + 2
                     ));
         }
 
@@ -97,9 +97,9 @@ namespace Describer.Test
         public void AdditionDifferentProps()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}, {nameof(obj.NumProp2)}: {obj.NumProp + obj.NumProp2} }}",
-                DescriptionBuilder.Describe(obj,
-                        o => (o.NumProp + o.NumProp2).ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}, {nameof(obj.NumProp2)}\":{obj.NumProp + obj.NumProp2}}}",
+                Morpher.Describe(obj,
+                        o => o.NumProp + o.NumProp2
                     ));
         }
 
@@ -107,8 +107,8 @@ namespace Describer.Test
         public void MultiParameterMethod()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}: {NumsToString(obj.NumProp, obj.NumProp)} }}",
-                DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}\":\"{NumsToString(obj.NumProp, obj.NumProp)}\"}}",
+                Morpher.Describe(obj,
                         o => NumsToString(o.NumProp, o.NumProp)
                     ));
         }
@@ -117,8 +117,8 @@ namespace Describer.Test
         public void MultiParameterMethodDifferentProps()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}, {nameof(obj.NumProp2)}: {NumsToString(obj.NumProp, obj.NumProp2)} }}",
-                DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}, {nameof(obj.NumProp2)}\":\"{NumsToString(obj.NumProp, obj.NumProp2)}\"}}",
+                Morpher.Describe(obj,
                         o => NumsToString(o.NumProp, o.NumProp2)
                     ));
         }
@@ -127,8 +127,8 @@ namespace Describer.Test
         public void ObjectMethodWithParam()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.MethodWithParam)}(), {nameof(obj.NumProp)}: {obj.MethodWithParam(obj.NumProp.ToString())} }}",
-                DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.MethodWithParam)}(), {nameof(obj.NumProp)}\":\"{obj.MethodWithParam(obj.NumProp.ToString())}\"}}",
+                Morpher.Describe(obj,
                         o => o.MethodWithParam(o.NumProp.ToString())
                     ));
         }
@@ -137,8 +137,8 @@ namespace Describer.Test
         public void ObjectMethodWithTwoParams()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.MethodWithParam)}(), {nameof(obj.NumProp)}, {nameof(obj.NumProp2)}: {obj.MethodWithParam(obj.NumProp.ToString(), obj.NumProp2)} }}",
-                DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.MethodWithParam)}(), {nameof(obj.NumProp)}, {nameof(obj.NumProp2)}\":\"{obj.MethodWithParam(obj.NumProp.ToString(), obj.NumProp2)}\"}}",
+                Morpher.Describe(obj,
                         o => o.MethodWithParam(o.NumProp.ToString(), o.NumProp2)
                     ));
         }
@@ -148,8 +148,8 @@ namespace Describer.Test
         {
             var obj = new TestClass();
             var obj2 = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.MethodWithParam)}(): {obj.MethodWithParam(obj2.NumProp.ToString())} }}",
-                DescriptionBuilder.Describe(obj,
+            Assert.AreEqual($"{{\"{nameof(obj.MethodWithParam)}()\":\"{obj.MethodWithParam(obj2.NumProp.ToString())}\"}}",
+                Morpher.Describe(obj,
                         o => o.MethodWithParam(obj2.NumProp.ToString())
                     ));
         }
@@ -158,10 +158,10 @@ namespace Describer.Test
         public void TwoProperties()
         {
             var obj = new TestClass();
-            Assert.AreEqual($"{{ {nameof(obj.NumProp)}: {obj.NumProp}; {nameof(obj.NumProp2)}: {obj.NumProp2} }}",
-                DescriptionBuilder.Describe(obj,
-                        o => o.NumProp.ToString(),
-                        o => o.NumProp2.ToString()
+            Assert.AreEqual($"{{\"{nameof(obj.NumProp)}\":{obj.NumProp},\"{nameof(obj.NumProp2)}\":{obj.NumProp2}}}",
+                Morpher.Describe(obj,
+                        o => o.NumProp,
+                        o => o.NumProp2
                     ));
         }
 
