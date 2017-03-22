@@ -1,4 +1,4 @@
-﻿namespace Describer
+﻿namespace Morph
 
 open System
 open System.Linq.Expressions
@@ -7,7 +7,6 @@ type private Builder<'b> (exps: seq<Expression<Func<'b,string>>>) =
     let getNameFromSet (names: Set<option<string>>) =
         match Set.count names with
         | 0 -> None
-        | 1 -> names |> Set.toSeq |> Seq.head
         | _ -> names |> Set.toSeq |> Seq.map (fun n -> n.Value) |> (fun vs -> Some (String.Join(", ", vs)))    
 
     let rec getPropertyName (exp: Expression) = getPropertyNameInternal None exp
@@ -21,7 +20,7 @@ type private Builder<'b> (exps: seq<Expression<Func<'b,string>>>) =
             | :? ConstantExpression -> None
             | :? UnaryExpression -> None
             | null -> None
-            | _ -> raise (new Exception("Unknown expression type"))
+            | _ -> raise (new ArgumentException("Unknown expression type"))
 
     and poolNames (names: seq<option<string>>) =
         names

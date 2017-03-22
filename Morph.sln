@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Describer.Test", "Describer.Test\Describer.Test.csproj", "{2CE064D1-A970-48A8-8907-F1020125CDFB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morph.Test", "Morph.Test\Morph.Test.csproj", "{2CE064D1-A970-48A8-8907-F1020125CDFB}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Describer", "Describer\Describer.fsproj", "{02A54FC0-46C3-441C-8053-A181A49093A6}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Morph", "Morph\Morph.fsproj", "{02A54FC0-46C3-441C-8053-A181A49093A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
